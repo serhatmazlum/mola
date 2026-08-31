@@ -82,13 +82,29 @@ function applyGlobalShortcut(accelerator: string): boolean {
   }
 }
 
+/**
+ * Acilista baslatmayi sistemle esitler ve *gerceklesen* durumu dondurur.
+ * Imzasiz ya da /Applications disindan calisan bir kopyada macOS bunu
+ * reddedebilir; o zaman ayari geri alip arayuzun yalan soylemesini onleriz.
+ * openAsHidden Electron 44'te kaldirildi; gizli acilis kendi startMinimized
+ * ayarimizla saglaniyor.
+ */
+function syncLaunchAtLogin(desired: boolean): boolean {
+  // Gelistirme modunda kullanicinin acilis ogelerine Electron binary'si eklenmez.
+  if (!app.isPackaged) return desired
+  try {
+    if (app.getLoginItemSettings().openAtLogin === desired) return desired
+    app.setLoginItemSettings({ openAtLogin: desired })
+    return app.getLoginItemSettings().openAtLogin
+  } catch {
+    return false
+  }
+}
+
 function applySystemSettings(settings: Settings): void {
   windows.applyTheme(settings.theme)
-  if (app.isPackaged || process.platform === 'win32') {
-    // openAsHidden Electron 44'te kaldirildi; gizli acilis kendi startMinimized
-    // ayarimizla saglaniyor.
-    app.setLoginItemSettings({ openAtLogin: settings.launchAtLogin })
-  }
+  const actual = syncLaunchAtLogin(settings.launchAtLogin)
+  if (actual !== settings.launchAtLogin) store.updateSettings({ launchAtLogin: actual })
 }
 
 // ----------------------------------------------------------------------- IPC

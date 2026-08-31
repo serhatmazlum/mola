@@ -176,6 +176,13 @@ Electron düz Node olarak çalışıyor demektir:
 env -u ELECTRON_RUN_AS_NODE npm run dev
 ```
 
+**"Açılışta başlat" açtığımda bir şey olmuyor**
+Geliştirme modunda (`npm run dev`) bu ayar bilerek sisteme yazılmaz — yoksa
+kullanıcının açılış öğelerine Electron binary'si eklenirdi. Paketlenmiş
+uygulamada çalışır. macOS uygulamayı `/Applications` dışından çalıştırıyorsan
+veya imzasızsa sistem kaydı reddedebilir; bu durumda anahtar kendiliğinden
+kapanır (sessizce yalan söylemez).
+
 **Mola ekranı tam ekran uygulamanın altında kalıyor (macOS)**
 Sistem Ayarları → Masaüstü ve Dock → "Ekranların ayrı Alanları var" açıksa
 overlay yalnızca aktif alanda görünebilir.
