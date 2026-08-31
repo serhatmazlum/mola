@@ -1,0 +1,78 @@
+name: Release
+
+# v ile baslayan bir etiket pushlandiginda macOS ve Windows kurulum
+# dosyalarini uretir ve GitHub Release'e ekler.
+#   git tag v1.0.0 && git push --tags
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            target: --mac
+          - os: windows-latest
+            target: --win
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Bagimliliklar
+        run: npm ci
+
+      # Bazi npm yapilandirmalari kurulum betiklerini engeller; binary yoksa elle indir.
+      - name: Electron binary'sini dogrula
+        shell: bash
+        run: |
+          if [ ! -d node_modules/electron/dist ]; then
+            node node_modules/electron/install.js
+          fi
+          if [ ! -x node_modules/.bin/esbuild ] && [ ! -f node_modules/.bin/esbuild.cmd ]; then
+            node node_modules/esbuild/install.js
+          fi
+
+      - name: Testler
+        run: npm test
+
+      - name: Derle
+        run: npm run build
+
+      - name: Paketle
+        run: npx electron-builder ${{ matrix.target }} --publish never
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mola-${{ matrix.os }}
+          path: |
+            release/*.dmg
+            release/*.zip
+            release/*.exe
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**/*
+          generate_release_notes: true

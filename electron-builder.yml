@@ -1,0 +1,65 @@
+appId: com.smc.mola
+productName: Mola
+copyright: Copyright © 2026 Serhat Mazlum Cetin
+directories:
+  buildResources: build
+  output: release
+files:
+  - out/**/*
+  - resources/**/*
+  - package.json
+asar: true
+compression: maximum
+removePackageScripts: true
+
+mac:
+  category: public.app-category.productivity
+  target:
+    - target: dmg
+      arch: [arm64, x64]
+    - target: zip
+      arch: [arm64, x64]
+  icon: build/icon.png
+  darkModeSupport: true
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  # Kod imzalama sertifikasi olmayan makinelerde de derlenebilsin diye imzasiz build.
+  # Sertifikan varsa bu satiri silip CSC_LINK / CSC_KEY_PASSWORD ver.
+  identity: null
+  extendInfo:
+    LSUIElement: false
+    NSUserNotificationAlertStyle: alert
+
+dmg:
+  artifactName: ${productName}-${version}-${arch}.${ext}
+  contents:
+    - x: 140
+      y: 200
+      type: file
+    - x: 400
+      y: 200
+      type: link
+      path: /Applications
+
+win:
+  target:
+    - target: nsis
+      arch: [x64, arm64]
+  icon: build/icon.png
+  artifactName: ${productName}-Setup-${version}-${arch}.${ext}
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Mola
+  deleteAppDataOnUninstall: false
+
+linux:
+  target: [AppImage]
+  icon: build/icon.png
+  category: Utility
